@@ -121,4 +121,120 @@ public class UserServiceImpl implements UserService{
 
 ***控制反转是一种通过描述(XML或者注释)并通过第三方区生产或者获取特定对象的方式。再Spring中实现控制反转的是IoC容器，其实现方法是依赖注入(Dependency Injection ,DI)***
 
+控制反转的过程：
+
+**控制**：谁来控制对象的创建，传统的应用程序对象有程序控制创建，使用Spring后，对象由Spring创建
+
+反转：程序本身不创建对象，变为接手对象
+
+依赖注入: 使用Set方法进行注入
+
+使用spring，彻底不用在去程序中改动，要实现不同的操作，只需要在xml配置文件中修改，IOC一句话总结：对象由Spring来创建，管理，装配。
+
+
+
 ### 3. HelloSpring
+
+以第二节的系统为例进行spring相关工程配置
+
+#### 3.1 编辑xml配置
+
+resources 下编辑配置xml配置脚本，取名叫bean.xml(这个名字可以随便取)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id = "userDaoImpl" class="com.helian.dao.UserDaoImpl" />
+    <bean id="userDaoMysqlImpl" class="com.helian.dao.UesrDaoMysqlImpl" />
+    <bean id = "userService" class="com.helian.UserService.UserServiceImpl">
+        <!--ref表示引用spring中创建的对象-->
+        <property name="userDao" ref="userDaoImpl"></property>
+    </bean>
+
+</beans>
+```
+
+#### 3.2 调用程序如下：
+
+```Java
+public class MyTest {
+    public static void main(String[] args) {
+        //使用普通Java调用方式
+//        UserService userService = new UserServiceImpl();
+//        userService.setUserDao(new UesrDaoMysqlImpl());
+//        userService.getUser();
+        //使用Spring方式调用
+
+        //获取spring的容器，本例子中是在xml中获取，可以通过ApplicationContext的引用中查到有很多种类的容器。
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        //对象再spring中管理
+        UserService hello = (UserService) context.getBean("userService");
+        hello.getUser();
+    }
+}
+```
+
+
+
+## 4. IOC创建对象的方式
+
+* 写在XML中的无论是否使用均被创造
+* 默认采用无参创建对象
+
+具体可以参考
+
+> https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#beans-factory-instantiation
+
+* 有参数的构造
+
+```Java
+<bean id="exampleBean" class="examples.ExampleBean">
+    <constructor-arg index="0" value="7500000"/>
+    <constructor-arg index="1" value="42"/>
+</bean>
+```
+
+
+
+## 5. Spring配置
+
+### 5.1 别名
+
+```xml
+<alias name="user" alias="myUser"/>
+```
+
+### 5.2 Bean配置
+
+* name别名，可以用空格和，进行多个
+
+### 5.3 Import配置
+
+假设项目现在多个人开发，这三个人负责不同的类开发，不同类注册在不同的bean下，可以利用import将所有beans.xml合并一个总的applicationContxt.xml,(内容相同的会被自动合并)
+
+```xml
+<import resource="beans1.xml" />
+<import resource="beans2.xml" />
+<import resource="beans3.xml" />
+```
+
+
+
+## DI依赖注入
+
+### 6.1 构造器注入
+
+### 6.2 Set方式注入【重点】
+
+* 依赖注入：Set注入
+  * 依赖：bean对象的创建依赖于容器
+  * 注入：bean对象的所有属性，有容器来注入
+
+### 6.3 扩展方式注入
+
+
+
