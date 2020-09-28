@@ -1,3 +1,5 @@
+
+
 ## 1. spring
 
 ### 1.1简介
@@ -674,3 +676,107 @@ AOP(Aspect Oriented Programming) 面向切面编程，通过预编译方法和�
 * 代理(Proxy): 向目标通知后创建的对象(getProxy获取的对象)
 * 切入点，
 * 连接点
+
+### 11.3 原生Spring完成AOP
+
+以service得增删改查为例，Service和ServiceImpl写法不变，再ApplicationContext上需要做变动
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+    <bean id="log" class="com.lian.log.Log"/>
+    <bean id="serviceImpl" class="com.lian.service.ServiceImpl"/>
+    <!--总的来说就是定义切入点和切入什么功能-->
+    <aop:config>
+        <!--execution(* com.sample.service.impl..*.*(..))-->
+        <!--解释如下：-->
+        <!--符号	含义-->
+        <!--execution（）	表达式的主体；-->
+        <!--第一个”*“符号	表示返回值的类型任意；-->
+        <!--com.sample.service.impl	AOP所切的服务的包名，即，我们的业务部分-->
+        <!--包名后面的”..“	表示当前包及子包-->
+        <!--第二个”*“	表示类名，*即所有类。此处可以自定义，下文有举例-->
+        <!--.*(..)	表示任何方法名，括号表示参数，两个点表示任何参数类型-->
+        <aop:pointcut id="pointcut" expression="execution(* com.lian.service.ServiceImpl.*(..))"/>
+        <aop:advisor advice-ref="log" pointcut-ref="pointcut"/>
+    </aop:config>
+</beans>	
+```
+
+ 增加aop域，之后写切入点将切入点（需要指定执行切入的位置通过execution指定），然后将切入点和功能环绕起来。注意log的实现方式需要
+
+```Java
+public class Log implements MethodBeforeAdvice {
+    public void before(Method method, Object[] objects, @Nullable Object o) throws Throwable {
+        System.out.println("你执行了"+method.getName()+"方法");
+    }
+}
+```
+
+这里使用了Aop的接口MethodBeforeAdvice，实际可用的接口可以进入到Aop包中查看
+
+### 11.4 自定义类完成AOP
+
+Log类不用继承Aop接口，如可以直接写成如下：
+
+```Java
+public class Log {
+    public void beforLog(){
+        System.out.println("===========开始日志=========");
+    }
+    public void afterLog(){
+        System.out.println("===========结束日志=========");
+    }
+}
+```
+
+配置文件调整：
+
+```xml
+    <aop:config>
+        <!--自定义切入点-->
+        <aop:aspect ref="logv2">
+            <!--切入点-->
+            <aop:pointcut id="pointCut" expression="execution(* com.lian.service.ServiceImpl.*(..))" />
+            <!--通知-->
+            <aop:before method="beforLog" pointcut-ref="pointCut"/>
+            <aop:after method="afterLog" pointcut-ref="pointCut"/>
+        </aop:aspect>
+    </aop:config>
+```
+
+自定义AOP的优缺点：
+
+优：写起来简单
+
+缺：没法封装method
+
+### 11.5 使用注解实现AOP
+
+## 12 Mybatis Spring使用
+
+步骤：
+
+1. 导入相关jar包
+   * junit (Java单元测试用包)
+   * mybatis
+   * mysql数据库
+   * spring相关
+   * aop织入
+   * mybatis-spring
+2. 编写配置文件
+3. 测试
+
+### 12.1 Mybatis使用
+
+1. 编写实体类
+2. 编写核心配置文件
+3. 编写接口
+4. 编写Mapper.xml
+5. 测试
