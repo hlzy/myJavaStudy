@@ -236,5 +236,81 @@ public class MyTest {
 
 ### 6.3 扩展方式注入
 
+官网给出的一些注入方式：
+
+```java
+<bean id="moreComplexObject" class="example.ComplexObject">
+    <!-- results in a setAdminEmails(java.util.Properties) call -->
+    <property name="adminEmails">
+        <props>
+            <prop key="administrator">administrator@example.org</prop>
+            <prop key="support">support@example.org</prop>
+            <prop key="development">development@example.org</prop>
+        </props>
+    </property>
+    <!-- results in a setSomeList(java.util.List) call -->
+    <property name="someList">
+        <list>
+            <value>a list element followed by a reference</value>
+            <ref bean="myDataSource" />
+        </list>
+    </property>
+    <!-- results in a setSomeMap(java.util.Map) call -->
+    <property name="someMap">
+        <map>
+            <entry key="an entry" value="just some string"/>
+            <entry key ="a ref" value-ref="myDataSource"/>
+        </map>
+    </property>
+    <!-- results in a setSomeSet(java.util.Set) call -->
+    <property name="someSet">
+        <set>
+            <value>just some string</value>
+            <ref bean="myDataSource" />
+        </set>
+    </property>
+</bean>
+```
+
+可以是用P命名空间和C命名空间来使用
+
+官方使用主要可以参考：
+
+```xml
+<!--xmlns:p="http://www.springframework.org/schema/p"-->
+<!--P 命名空间注入-->
+    <bean id="user2" class="com.lian.pojo.User" p:age="12" p:name="xx">
+    </bean>
+```
 
 
+
+### 6.4 Bean的作用于
+
+官网：https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#beans-factory-scopes
+
+| Scope                                                        | Description                                                  |
+| :----------------------------------------------------------- | :----------------------------------------------------------- |
+| [singleton](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#beans-factory-scopes-singleton) | (Default) Scopes a single bean definition to a single object instance for each Spring IoC container. |
+| [prototype](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#beans-factory-scopes-prototype) | Scopes a single bean definition to any number of object instances. |
+| [request](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#beans-factory-scopes-request) | Scopes a single bean definition to the lifecycle of a single HTTP request. That is, each HTTP request has its own instance of a bean created off the back of a single bean definition. Only valid in the context of a web-aware Spring `ApplicationContext`. |
+| [session](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#beans-factory-scopes-session) | Scopes a single bean definition to the lifecycle of an HTTP `Session`. Only valid in the context of a web-aware Spring `ApplicationContext`. |
+| [application](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#beans-factory-scopes-application) | Scopes a single bean definition to the lifecycle of a `ServletContext`. Only valid in the context of a web-aware Spring `ApplicationContext`. |
+| [websocket](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web.html#websocket-stomp-websocket-scope) | Scopes a single bean definition to the lifecycle of a `WebSocket`. Only valid in the context of a web-aware Spring `ApplicationContext`. |
+
+1. 单例模式
+2. 原型模式(prototype)，每次从容器中get时，会产生一个新的对象
+   1. 换句话说，如果不get也不会调用构造函数。
+   2. 原型模式大部分时候在多线程时候会用到
+3. 其余的request,session,application，这些只能在web开发中使用。（下一步做）
+
+## Bean的自动装配
+
+* 自动装配是Spring满足bean一来的一种方式
+* Spring会在上下文中自动寻找，并自动给bean装配属性。
+
+在Spring中有三种装配方式
+
+1. 在xml中显示装配
+2. 在Java中显示装配
+3. 隐式的自动装配Bean【重要】
