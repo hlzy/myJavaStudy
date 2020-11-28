@@ -1,3 +1,5 @@
+
+
 ## 1. spring
 
 ### 1.1简介
@@ -224,7 +226,7 @@ public class MyTest {
 
 
 
-## DI依赖注入
+## 6. DI依赖注入
 
 ### 6.1 构造器注入
 
@@ -236,6 +238,7 @@ public class MyTest {
 
 ### 6.3 扩展方式注入
 
+<<<<<<< HEAD
 官网给出的一些注入方式：
 
 ```java
@@ -310,6 +313,642 @@ public class MyTest {
 * Spring会在上下文中自动寻找，并自动给bean装配属性。
 
 在Spring中有三种装配方式
+=======
+### 6.4 bean作用域
+
+## 7 Bean的自动装配
+
+* 自动装配是Spring满足bean依赖的一种方式
+* Spring在上下文中自动寻找，并自动给bean装配属性！
+
+在Spring中有三种装配方式
+
+1. 在xml中显示配置
+2. 在java中显示配置
+3. 隐式的自动装配bean【重要！】
+
+#### 7.1 测试
+
+1.  环境搭建
+
+#### 7.2 Byname自动装配
+
+#### 7.4  使用注解来装配
+
+@Autowired,@Resource
+
+要使用注解须知：
+
+1. 导入约束:context约束
+2. 配置注解的支持: <context:annotation-config/>
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+    <context:annotation-config/>
+</beans>
+```
+
+3. 对应Java部分
+
+```Java
+public class Person {
+    @Autowired
+    private Cat cat;
+    @Autowired
+    private Dog dog;
+    private String name;
+}
+```
+
+==注解本身实现究竟是如何完成==
+
+**@Autowired**
+
+可以再属性上使用，也可以使用set方法使用
+
+使用Autowired可以不用Set方法，
+
+科普：
+
+```Java
+@Nullable 字段标记了标识字段可以为Null
+```
+
+如果@Autowired自动装配的环境复杂，自动装配无法通过一个注解完成,使用Qualifier配合使用
+
+```xml
+    <bean id="cat1" class="com.lian.pojo.Cat"/>
+    <bean id="cat2" class="com.lian.pojo.Cat"/>
+    <bean id="dog1" class="com.lian.pojo.Dog"/>
+    <bean id="dog2" class="com.lian.pojo.Dog"/>
+```
+
+```Java
+public class Person {
+    @Autowired
+    @Qualifier("cat1")
+    private Cat cat;
+    @Autowired
+    @Qualifier("dog22")
+    private Dog dog;
+    private String name;
+    }
+```
+
+@Resource注解
+
+```Java
+public class Person {
+    @Resource("cat1")
+    private Cat cat;
+    @Autowired
+    @Qualifier("dog22")
+    private Dog dog;
+    private String name;
+    }
+```
+
+小结：
+
+@Resource和@Autowired区别
+
+* 都是用来自动装配的，都可以放在属性字段上。
+* @Autowired 通过bytype方式实现
+* @Resource通过byname方式实现，如果找不到名字就通过byType实现。如果都找不到就报错。
+
+## 8 使用注解开发
+
+1. bean
+
+   * 导入Aop的包
+
+   * 加入对注解的支持
+
+     ```xml
+     <?xml version="1.0" encoding="UTF-8"?>
+     <beans xmlns="http://www.springframework.org/schema/beans"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:context="http://www.springframework.org/schema/context"
+            xsi:schemaLocation="http://www.springframework.org/schema/beans
+             https://www.springframework.org/schema/beans/spring-beans.xsd
+             http://www.springframework.org/schema/context
+             https://www.springframework.org/schema/context/spring-context.xsd">
+         <context:annotation-config/>
+     </beans>
+     ```
+
+   @Component加载类上，说明使用组件来管理此类如：
+
+   ```java
+   @Component
+   public class User {
+       public String name="lian";
+   }
+   
+   ```
+
+   
+
+2. 属性如何注入
+
+```java
+@Component
+public class User {
+    @Value("lian")
+    public String name;
+}
+```
+
+3. 衍生的注解
+
+@Component又几个衍生注解，再Web开发中，会按照mvc三层架构分层
+
+* dao @Repository 功能和component一样
+* service @service
+* controller @Controller
+
+这个四个注解功能都一样，都是代表将某个类注册到Spring中，装配Bean.
+
+4. 自行装配置
+
+```xml
+@Autowired
+@Resource
+@Nullable 这个标识字段可以为null
+```
+
+5. 作用域
+
+```java
+@Component
+@Scope("singleton")
+public class User {
+    @Value("lian")
+    public String name;
+}
+```
+
+6. 小结
+
+   xml与注解：
+
+   * xml更加万能，适用于任何场合，维护简单方便
+   * 注解不是自己类使用不了，维护相对复杂
+
+   最佳时间：
+
+   	* xml管理bean
+   	* 注解只负责完成属性的注入
+
+## 9. 使用Javaconfig开发
+
+建立JavaConfig
+
+```java
+//给Srping托管，注册到容器中，和之前的xml形式一样。
+@Configuration
+@ComponentScan("com.lian.pojo")
+public class JavaConfig {
+//    使用了Conponent所就可以不用使用下面的Bean填写
+//    @Bean
+//    public User getUser(){
+//        return new User();
+//    }
+}
+
+```
+
+```Java
+@Component
+public class User {
+    public String name;
+
+    @Value("sunji")
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                '}';
+    }
+}
+
+```
+
+测试类：获取JavaConfig容器
+
+```java
+public class MyTest {
+    public static void main(String[] args) {
+//        使用AnnotationConfigApplicationContxt方式获取容器，逻辑上和使用xml方式没有区别
+        ApplicationContext context =  new AnnotationConfigApplicationContext(JavaConfig.class);
+        User user = (User)context.getBean("user");
+        System.out.println(user.toString());
+    }
+}
+```
+
+纯Java的配置，在pringBoot中见的较多，SSM(Spring,SpringMVC,MyBatis)
+
+## 10 代理模式
+
+> 面向对象的七大原则  https://blog.csdn.net/qq_41331645/article/details/81102015
+
+为什么学习代理模式？这是SpringAOP的底层！【SpringAOP 和 SpringMVC】
+
+代理模式的分类：
+
+* 静态代理
+* 动态代理
+
+### 10.1 静态代理
+
+角色分析：
+
+* 抽象角色：一般会使用接口或者抽象类来解决
+* 真实角色：被代理的角色
+* 代理角色：代理真实角色，代理真是角色后，我们一般会做一些附属操作
+* 客户：访问代理对象的人  
+
+### 10.2 例子：
+
+以数据库的增删改查为例子，正常的开发逻辑未先建立一下角色：
+
+* service
+
+```java
+public interface Service {
+    public void add();
+    public void del();
+    public void update();
+    public void select();
+}
+```
+
+* serviceImpl
+
+```Java
+public class ServiceImpl implements Service {
+    public void add() {
+        System.out.println("增加数据");
+    }
+
+    public void del() {
+        System.out.println("删除数据");
+    }
+
+    public void update() {
+        System.out.println("更新数据");
+    }
+
+    public void select() {
+        System.out.println("查询数据");
+    }
+}
+```
+
+如果这个时候需要增加一个功能在Service操作前打出LOG,如果直接去修改ServiceImpl就破坏了现有的功能，为了避免这点就引入了代理
+
+* serviceProxy
+
+  ```Java
+  public class ServiceProxy implements Service {
+      public Service serviceImpl;
+  
+      public ServiceProxy(Service serviceImpl) {
+          this.serviceImpl = serviceImpl;
+      }
+      
+      public void add() {
+          serviceImpl.add();
+      }
+  
+      public void del() {
+          this.log();
+          serviceImpl.del();
+      }
+  
+      public void update() {
+          this.log();
+          serviceImpl.update();
+      }
+  
+      public void select() {
+          this.log();
+          serviceImpl.select();
+      }
+  
+      public void log(){
+          System.out.println("日志:");
+      }
+  }
+  ```
+
+这样可以在建立代理就可以自定义一些其他的操作附属于原始操作之上了，如加入了log操作
+
+代理模式的好处：
+
+* 可以使真实的角色只关注自己的具体操作，不用关注到业务层面的操作
+* 实现了业务的分工
+* 公共业务发证扩展，方便集中管理。
+
+缺点：
+
+* 一个真实角色会产生一个代理角色，代码量翻倍效率降低。
+
+> 在我理解看来就是把业务细化，做到模块解耦。
+
+### 10.3 动态代理
+
+* 动态代理和静态代理角色一样
+* 动态代理的代理类是动态生成的，不是直接写好的！（解决了静态代理的缺点）
+* 动态代理分为两大类：基于接口的动态代理，基于类的动态代理。
+  * 基于接口,JDK动态代理
+  * 基于类：cglib
+  * java字节码:javasist
+
+需要了解两个类：Proxy(代理),InvocationHandler（调用处理程序）
+
+创建InvocationHandler
+
+```java
+public class ServiceInvocationHandler implements InvocationHandler {
+//    创建一个target接收真实角色
+    private Object target;
+
+    public void setTarget(Object target) {
+        this.target = target;
+    }
+
+//  InvocationHandler handler = new MyInvocationHandler(...);
+//  Foo f = (Foo) Proxy.newProxyInstance(Foo.class.getClassLoader(),
+//        new Class<?>[] { Foo.class },
+//        handler);
+
+    public Object getProxy(){
+        return Proxy.newProxyInstance(this.getClass().getClassLoader(),target.getClass().getInterfaces(),this);
+    }
+    /**
+     *
+     * @param proxy:  the proxy instance that the method was invoked on
+     * @param method
+     * @param args
+     * @return an array of objects containing the values of the arguments passed in the method invocation on the proxy instance,
+     * @throws Throwable
+     */
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        log(method.getName());
+        System.out.println(proxy.getClass().getName());
+        Object result = method.invoke(target,args);
+        return result;
+    }
+    public void log(String msg){
+        System.out.println("日志:"+msg);
+    }
+}
+
+```
+
+调用部分
+
+```java
+ServiceInvocationHandler handler =  new ServiceInvocationHandler();
+handler.setTarget(service);
+Service service2 = (Service)handler.getProxy();
+service2.add();
+```
+
+动态代理的好处：
+
+* 一个动态代理代理的是一个接口，一般对应一类业务
+* 一个动态代理类可以代理多个类，只要实现了同一个接口
+
+## 11 AOP
+
+### 11.1 什么是AOP
+
+AOP(Aspect Oriented Programming) 面向切面编程，通过预编译方法和运行期动态代理实现程序功能的统一维护的一种技术，AOP是OOP的延续，是软件开发的一个热点，也是Spring框架中的一个重要内容，是函数式变成的一种衍生范型，利用AOP可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各个部分之间的耦合度降低，提高程序的可重用性，提高开发的效率
+
+![image-20200924175609159](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20200924175609159.png)
+
+### 11.2 Aop在Spring中的作用
+
+提供声明式事务，允许用户自定义切面
+
+* 横切面关注点：跨越应用程序多个模块的方法或功能。也就是，与我们业务逻辑无关系，但我们关注的部分，就是横切面关注点，如：日志，安全，缓存，事务等。
+* 切面(ASPECT)：切面关注被模块化的特殊对象，即，他是一个类(如：Log)
+* 通知(Advice)：切面必须要完成的工作，即，他是类中的一个方法*（如 Log中的方法）
+* 目标(Target): 被通知的对象(如刚才10.2中的target)
+* 代理(Proxy): 向目标通知后创建的对象(getProxy获取的对象)
+* 切入点，
+* 连接点
+
+### 11.3 原生Spring完成AOP
+
+以service得增删改查为例，Service和ServiceImpl写法不变，再ApplicationContext上需要做变动
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+    <bean id="log" class="com.lian.log.Log"/>
+    <bean id="serviceImpl" class="com.lian.service.ServiceImpl"/>
+    <!--总的来说就是定义切入点和切入什么功能-->
+    <aop:config>
+        <!--execution(* com.sample.service.impl..*.*(..))-->
+        <!--解释如下：-->
+        <!--符号	含义-->
+        <!--execution（）	表达式的主体；-->
+        <!--第一个”*“符号	表示返回值的类型任意；-->
+        <!--com.sample.service.impl	AOP所切的服务的包名，即，我们的业务部分-->
+        <!--包名后面的”..“	表示当前包及子包-->
+        <!--第二个”*“	表示类名，*即所有类。此处可以自定义，下文有举例-->
+        <!--.*(..)	表示任何方法名，括号表示参数，两个点表示任何参数类型-->
+        <aop:pointcut id="pointcut" expression="execution(* com.lian.service.ServiceImpl.*(..))"/>
+        <aop:advisor advice-ref="log" pointcut-ref="pointcut"/>
+    </aop:config>
+</beans>	
+```
+
+ 增加aop域，之后写切入点将切入点（需要指定执行切入的位置通过execution指定），然后将切入点和功能环绕起来。注意log的实现方式需要
+
+```Java
+public class Log implements MethodBeforeAdvice {
+    public void before(Method method, Object[] objects, @Nullable Object o) throws Throwable {
+        System.out.println("你执行了"+method.getName()+"方法");
+    }
+}
+```
+
+这里使用了Aop的接口MethodBeforeAdvice，实际可用的接口可以进入到Aop包中查看
+
+### 11.4 自定义类完成AOP
+
+Log类不用继承Aop接口，如可以直接写成如下：
+
+```Java
+public class Log {
+    public void beforLog(){
+        System.out.println("===========开始日志=========");
+    }
+    public void afterLog(){
+        System.out.println("===========结束日志=========");
+    }
+}
+```
+
+配置文件调整：
+
+```xml
+    <aop:config>
+        <!--自定义切入点-->
+        <aop:aspect ref="logv2">
+            <!--切入点-->
+            <aop:pointcut id="pointCut" expression="execution(* com.lian.service.ServiceImpl.*(..))" />
+            <!--通知-->
+            <aop:before method="beforLog" pointcut-ref="pointCut"/>
+            <aop:after method="afterLog" pointcut-ref="pointCut"/>
+        </aop:aspect>
+    </aop:config>
+```
+
+自定义AOP的优缺点：
+
+优：写起来简单
+
+缺：没法封装method
+
+### 11.5 使用注解实现AOP
+
+## 12 Mybatis Spring使用
+
+步骤：
+
+1. 导入相关jar包
+   * junit (Java单元测试用包)
+   * mybatis
+   * mysql数据库
+   * spring相关
+   * aop织入
+   * mybatis-spring
+2. 编写配置文件
+3. 测试
+
+### 12.1 Mybatis使用
+
+1. 编写实体类
+2. 编写核心配置文件
+3. 编写接口
+4. 编写Mapper.xml
+5. 测试
+
+
+
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+<!--    创建dataSource-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
+        <property name="url" value="jdbc:mysql://localhost:3306/mybatis?serverTimezone=UTC&amp;useSSL=true&amp;userUnicode=true&amp;characterEncoding=UTF-8"/>
+        <property name="username" value="root"/>
+        <property name="password" value="123456"/>
+    </bean>
+<!--创建sqlsessionfactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="mapperLocations" value="classpath:"
+    </bean>
+
+    <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg index="0" ref="sqlSessionFactory"/>
+    </bean>
+
+
+</beans>
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>spring-study</artifactId>
+        <groupId>com.helian.spring</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>spring-10-mybatis</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.4</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.21</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>3.5.5</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-jdbc -->
+        <!--使用spring操作数据库-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>5.2.8.RELEASE</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.aspectj/aspectjweaver -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis-spring -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-spring</artifactId>
+            <version>2.0.5</version>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+>>>>>>> fc61766d168e1c6abfdcf4bb2397298cb0cd130f
 
 1. 在xml中显示装配
 2. 在Java中显示装配
