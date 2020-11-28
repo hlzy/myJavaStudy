@@ -1,0 +1,38 @@
+第一步：把当前目录下的JetbrainsIdesCrack-4.2-release-sha1-3323d5d0b82e716609808090d3dc7cb3198b8c4b.jar文件放到idea的bin目录下
+
+
+第二步：分别在bin目录下的idea.exe.vmoptions和idea64.exe.vmoptions文件里末行添加如下内容（注意要根据自己的idea实际安装路径）：
+-javaagent:D:/Program Files/JetBrains/IntelliJ IDEA 2018.3.3/bin/JetbrainsIdesCrack-4.2-release-sha1-3323d5d0b82e716609808090d3dc7cb3198b8c4b.jar
+
+
+第三步：编辑C:\Windows\System32\drivers\etc下的hosts文件，最后面加入下面一行:
+0.0.0.0 account.jetbrains.com
+
+
+第四步：打开idea，输入如下注册码：
+ThisCrackLicenseId-{
+"licenseId":"ThisCrackLicenseId",
+"licenseeName":"you",
+"assigneeName":"good",
+"assigneeEmail":"bukengnikengshui@126.com",
+"licenseRestriction":"For This Crack, Only Test! Please support genuine!!!",
+"checkConcurrentUse":false,
+"products":[
+{"code":"II","paidUpTo":"2099-12-31"},
+{"code":"DM","paidUpTo":"2099-12-31"},
+{"code":"AC","paidUpTo":"2099-12-31"},
+{"code":"RS0","paidUpTo":"2099-12-31"},
+{"code":"WS","paidUpTo":"2099-12-31"},
+{"code":"DPN","paidUpTo":"2099-12-31"},
+{"code":"RC","paidUpTo":"2099-12-31"},
+{"code":"PS","paidUpTo":"2099-12-31"},
+{"code":"DC","paidUpTo":"2099-12-31"},
+{"code":"RM","paidUpTo":"2099-12-31"},
+{"code":"CL","paidUpTo":"2099-12-31"},
+{"code":"PC","paidUpTo":"2099-12-31"}
+],
+"hash":"2911276/0",
+"gracePeriodDays":7,
+"autoProlongated":false}
+
+破解完成！
