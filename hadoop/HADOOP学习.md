@@ -106,3 +106,9 @@
 ## 4. HADOOP编译
 
 TODO
+
+## 5. Hadoop写入数据流程
+
+* 写入流程
+
+![image-20201203233333423](HADOOP学习.assets/image-20201203233333423.png)

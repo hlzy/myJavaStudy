@@ -119,6 +119,8 @@ ps -e|grep ssh
 
 默认情况下root不允许远程ssh远程登录,需要修改文件以下配置
 
+/etc/ssh/sshd_config
+
 ```shell
 LoginGraceTime 120
 PermitRootLogin yes #prohibit-password
