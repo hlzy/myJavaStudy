@@ -69,7 +69,7 @@ TODO
 
 # 4. Spark运行框架
 
-主从结构
+## 4.1主从结构
 
 ![image-20201215213104955](spark%E6%A1%86%E6%9E%B6.assets/image-20201215213104955.png)
 
@@ -88,3 +88,232 @@ Executor:
 
 * 负责运行spark应用的任务
 * 他们通过自身的块管理，也会做RDD缓存，加速计算。
+
+### 4.2 分布式模拟
+
+由Driver发送Task到Excutor
+
+```scala
+//task.scala
+package com.helian.task
+
+class Task extends Serializable {
+  val datas = List(1,2)
+  def logic(x:Int):Int ={
+    x*2
+  }
+  def compute():List[Int] ={
+    datas.map(logic)
+  }
+}
+```
+
+```scala
+//driver.scala
+package com.helian.task
+
+import java.io.ObjectOutputStream
+import java.net.Socket
+
+object Driver {
+  def main(args: Array[String]): Unit = {
+    val task = new Task()
+    var client =  new Socket("localhost",9999)
+    var out = client.getOutputStream()
+    val objOut =  new ObjectOutputStream(out)
+    objOut.writeObject(task)
+    objOut.flush()
+    objOut.close()
+    client.close()
+  }
+}
+```
+
+```scala
+//Executor.scala
+package com.helian.task
+
+import java.io.ObjectInputStream
+import java.net.{ServerSocket, Socket}
+
+
+object Executor {
+  def main(args: Array[String]): Unit = {
+    val server = new ServerSocket(9999)
+    println("server start,waiting...")
+    val client:Socket = server.accept()
+    val in = client.getInputStream
+    val objIn = new ObjectInputStream(in)
+    val task = objIn.readObject().asInstanceOf[Task]
+    println(task.compute())
+    in.close()
+    client.close()
+    server.close()
+  }
+}
+```
+
+# 5. Spark编程核心
+
+Spark为**高并发**和**高吞吐**封装了三个数据结构，使用在不同应用场景。
+
+* RDD:弹性分布式数据集
+* 累加器:分布式共享**只写**变量
+* 广播变量:分布式共享**只读**变量
+
+> 只读和只写变量是怎么工作的？
+
+## 5.1 RDD
+
+### * RDD是什么
+
+RDD就是上面写道的Task，下图中的Task就是呗拆分后的subtask
+
+![image-20201223113307504](spark%E6%A1%86%E6%9E%B6.assets/image-20201223113307504.png)
+
+### * RDD实现原理
+
+IO: Input & Output
+
+**装饰者设计模式**
+
+> 在原有功能基础上扩展更丰富的功能，如IO操作是装饰者设计模式。
+>
+> 参考:https://blog.csdn.net/csdn15698845876/article/details/81544562
+
+![image-20201223204816481](spark%E6%A1%86%E6%9E%B6.assets/image-20201223204816481.png)
+
+> PariRDDFunctions存在隐式转化
+>
+> https://www.cnblogs.com/xia520pi/p/8745923.html
+
+### * RDD核心特性
+
+```java
+/** 
+* Internally, each RDD is characterized by five main properties:
+ *
+ *  - A list of partitions
+ *  - A function for computing each split
+ *  - A list of dependencies on other RDDs
+ *  - Optionally, a Partitioner for key-value RDDs (e.g. to say that the RDD is hash-partitioned)
+ *  - Optionally, a list of preferred locations to compute each split on (e.g. block locations for
+ *    an HDFS file)
+ **/
+```
+
+* 分区列表
+
+  * 主要用于并行计算
+
+  * ```java
+      /**
+       * Implemented by subclasses to return the set of partitions in this RDD. This method will only
+       * be called once, so it is safe to implement a time-consuming computation in it.
+       *
+       * The partitions in this array must satisfy the following property:
+       *   `rdd.partitions.zipWithIndex.forall { case (partition, index) => partition.index == index }`
+       */
+      protected def getPartitions: Array[Partition]
+    ```
+
+* 分区计算函数
+
+  * 不同分区计算方式相同
+
+```java
+  /**
+   * :: DeveloperApi ::
+   * Implemented by subclasses to compute a given partition.
+   */
+  @DeveloperApi
+  def compute(split: Partition, context: TaskContext): Iterator[T]
+```
+
+* RDD之间依赖关系
+
+```java
+  /**
+   * Implemented by subclasses to return how this RDD depends on parent RDDs. This method will only
+   * be called once, so it is safe to implement a time-consuming computation in it.
+   */
+  protected def getDependencies: Seq[Dependency[_]] = deps
+```
+
+* 可选：给Key-value结构RDD的分区器
+
+```java
+  /** Optionally overridden by subclasses to specify how they are partitioned. */
+  @transient val partitioner: Option[Partitioner] = None
+```
+
+* 可选：计算分区时首选位置
+
+判断数据发送给哪个位置更优
+
+```java
+  /**
+   * Optionally overridden by subclasses to specify placement preferences.
+   */
+  protected def getPreferredLocations(split: Partition): Seq[String] = Nil
+```
+
+### * RDD原理
+
+* Yarn启动，启动ResourceManger以及NodeManager
+* Spark通过Yarn启动Driver和Executor
+* Driver通过RDD更具不同分区划分成不同的Task任务
+
+![image-20201224204511063](spark%E6%A1%86%E6%9E%B6.assets/image-20201224204511063.png)
+
+* 调度节点将任务根据计算节点发送到对应的节点(excutor)计算
+
+
+
+* ### RDD源码
+
+TextFile
+
+```Java
+// FileInputFormat.java
+    
+```
+
+## 5.2 RDD各项算子
+
+* makeRDD
+* map
+* mapPartition
+* mapPartitionWithIndex
+* flatMap
+* glom：将内存中的数据转化为数组，分区不变
+* groupBy：groupBy会将数据打乱(打散)，重新组合，这个操作我们称只为shuffle。
+  * 一个组的数据放在一个分区中，不一定说一个分区中只有一个组。
+* filter:数据筛选，分区不变，但分区数据可能不均衡。
+* sample:
+  * 泊松分布:计算一段时间内一个事情的发生次数https://blog.csdn.net/ccnt_2012/article/details/81114920
+* distinct:
+* coalesce:缩减分区，分区合并，不会重新打乱分区（原来一个分区还是在一个分区）
+* sortBy
+* 双value操作
+  * intersection
+  * union
+  * substract
+  * zip(分区和分区类元素的数目要一致)
+* key-value类型
+  * partionBy
+    * -HashPartitioner(分类器有很多)
+* reduceByKey
+
+>  相较于groupByKey,reduceBykey支持分区内预聚合功能，减少减少了suffle落盘的数据。
+
+* groupByKey
+
+> 这里有个有意思的地方，spark中的shuffle操作必须要落盘处理，不能再内存中数据等待，这样会导致内存溢出。当然落盘会收到磁盘IO性能影响。
+
+![image-20201230164548459](spark%E6%A1%86%E6%9E%B6.assets/image-20201230164548459.png)
+
+截图是reduceBykey写的有一点问题。
+
+* groupBy
+* aggregateByKey
