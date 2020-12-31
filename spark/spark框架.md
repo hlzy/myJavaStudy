@@ -317,3 +317,12 @@ TextFile
 
 * groupBy
 * aggregateByKey
+* combineByKye
+* Join(SQL中的innerJoin)
+* leftOuterJoin
+* rightOuterJoin
+* cogroup: connect + group
+
+## 5.3 RDD行动算子
+
+* reduce
