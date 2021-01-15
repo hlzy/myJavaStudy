@@ -317,7 +317,7 @@ TextFile
 
 * groupBy
 * aggregateByKey
-* combineByKye
+* combineByKey
 * Join(SQL中的innerJoin)
 * leftOuterJoin
 * rightOuterJoin
@@ -326,3 +326,75 @@ TextFile
 ## 5.3 RDD行动算子
 
 * reduce
+* collect
+* count
+* take
+* first
+* takeOrdered
+* aggregate:初始值会参加分区内计算，也会参加分区间计算
+* fold:aggregate的分区内和分区间规则一样时候使用
+* countByKey&countByValue
+
+## 5.4 保存相关算子
+
+save:
+
+* saveAsTextFile
+* SaveAsObjectFile
+* Save
+
+## 5.5 算子操作
+
+RDD方法的外部操作都在Driver端执行，而方法内部的逻辑操作都是再Executor操作执行。
+
+### 5.5.1 RDD序列化
+
+* 闭包检查
+
+  RDD方法的外部操作都在Driver端执行，而方法内部的逻辑操作都是再Executor操作执行。再Scala函数式编程中，会导致**算子内**使用**算子外**的数据，形成**闭包**（算子内是一个闭包），闭包在执行前会进行序列化检查，也就是**闭包检测**
+
+```scala
+//一个比较巧妙的例子
+class Search(Query:String) {
+    def isMath(s:String):Boolean ={
+        s.contains(query)
+	}
+    //query本身是Serch的一个属性（构造参数也是属性），需要被进行序列化检测，所以会报错
+    def getMatch1(rdd:RDD[String]):RDD[String] ={
+        rdd.filter(isMatch)
+    }
+    
+   
+    def getMatch2(rdd:RDD[String]):RDD[String] ={
+        //和getMattch1一样的错误
+        rdd.filter(s.contains(query))
+        //s是字符串，这样就通过了序列化filter触发的序列化检测
+        val s= query
+        rdd.filter(s.contains(s))
+    }
+}
+```
+
+### 5.5.2 Kryo序列化框架
+
+Java序列化可以序列化任何类，但是序列化比较重，序列化后，对象比较大。Spark出与性能考虑，Spark2.0开始支持Kryo序列化。Kryo速度是Serialzable十倍。当RDD在Shuffle数据，简单的数据类型，数组，和字符串类型在Spark内部使用Kryo序列化。
+
+## 5.6 RDD依赖关系
+
+![image-20210104215158982](spark%E6%A1%86%E6%9E%B6.assets/image-20210104215158982.png)
+
+* 每个RDD会保存血缘关系
+
+RDD不会保存数据，RDD为了提供容错性，需要将RDD间的关系保存下来，一旦出现错误，可以根据血缘关系讲数据源重新读取进行计算。
+
+![image-20210104215737586](spark%E6%A1%86%E6%9E%B6.assets/image-20210104215737586.png)
+
+```scala
+//RDD.toDebugString打印血缘关系
+//主语shuffle后的分段表示
+```
+
+### 5.6.1 窄依赖
+
+一个上游的RDD只被最多一个下游的RDD依赖(一个下游有多个上游也可以是窄依赖)。
+
