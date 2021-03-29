@@ -36,6 +36,8 @@
 </configuration>
 ```
 
+> yarn启动必须要要在host。否则启动不起来。
+
 #### c. 修改mapred-env.sh
 
 配置JAVA_HOME
@@ -71,7 +73,7 @@
     <property>
         <name>mapreduce.jobhistory.address</name>
         <value>hadoop1:10020</value>
-    </pr	operty>
+    </property>
         <!--历史服务器web端地址-->
     <property>
         <name>mapreduce.jobhistory.webapp.address</name>
